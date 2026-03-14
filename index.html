@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Green Guarantee Finder · CPI Directory</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      background: #f4f7f5;
+      color: #1a202c;
+      min-height: 100vh;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      background: linear-gradient(135deg, #1a4731 0%, #2d6e4e 60%, #3a8a64 100%);
+      color: white;
+      padding: 20px 32px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+    }
+    .header-inner {
+      max-width: 960px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.3px; }
+    .header .sub { font-size: 13px; opacity: 0.75; margin-top: 2px; }
+    .header-badge {
+      font-size: 11px;
+      opacity: 0.65;
+      text-align: right;
+      line-height: 1.6;
+    }
+
+    /* ── LAYOUT ── */
+    .main {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 36px 20px 60px;
+    }
+
+    /* ── SEARCH CARD ── */
+    .search-card {
+      background: white;
+      border-radius: 18px;
+      padding: 30px 28px 24px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+      margin-bottom: 28px;
+      border: 1px solid #e4ede8;
+    }
+    .search-label {
+      font-size: 17px;
+      font-weight: 700;
+      color: #1a4731;
+      margin-bottom: 14px;
+    }
+    .search-row {
+      display: flex;
+      gap: 12px;
+      align-items: flex-end;
+    }
+    textarea#q {
+      flex: 1;
+      border: 2px solid #d9e6de;
+      border-radius: 12px;
+      padding: 13px 16px;
+      font-size: 15px;
+      font-family: inherit;
+      resize: none;
+      height: 76px;
+      line-height: 1.55;
+      color: #2d3748;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    textarea#q:focus {
+      outline: none;
+      border-color: #2d6e4e;
+      box-shadow: 0 0 0 3px rgba(45,110,78,0.1);
+    }
+    textarea#q::placeholder { color: #a0aec0; }
+    .btn-search {
+      background: #2d6e4e;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 0 26px;
+      height: 76px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.18s, transform 0.1s;
+      letter-spacing: 0.2px;
+      white-space: nowrap;
+    }
+    .btn-search:hover { background: #1a4731; }
+    .btn-search:active { transform: scale(0.97); }
+
+    .try-label {
+      font-size: 11.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: #90a89a;
+      margin: 18px 0 10px;
+    }
+    .chips { display: flex; flex-wrap: wrap; gap: 7px; }
+    .chip {
+      background: #f0f7f3;
+      color: #2d6e4e;
+      border: 1px solid #c3dfd0;
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 12.5px;
+      cursor: pointer;
+      transition: all 0.15s;
+      user-select: none;
+    }
+    .chip:hover { background: #2d6e4e; color: white; border-color: #2d6e4e; }
+
+    /* ── WELCOME STATE ── */
+    .welcome {
+      text-align: center;
+      padding: 10px 0 20px;
+    }
+    .welcome-stats {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+    .stat-num { font-size: 32px; font-weight: 800; color: #2d6e4e; line-height: 1; }
+    .stat-lbl { font-size: 12px; color: #718096; margin-top: 4px; }
+
+    /* ── RESULTS ── */
+    .results-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .results-bar .rq {
+      font-size: 14.5px;
+      color: #4a5568;
+      font-weight: 500;
+    }
+    .results-bar .rq em { color: #2d6e4e; font-style: normal; font-weight: 700; }
+    .results-bar .rc { font-size: 13px; color: #90a89a; }
+
+    /* ── CARDS ── */
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 22px 24px;
+      margin-bottom: 14px;
+      border: 1.5px solid #e4ede8;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      cursor: pointer;
+      transition: box-shadow 0.18s, transform 0.12s, border-color 0.18s;
+    }
+    .card:hover { box-shadow: 0 6px 24px rgba(0,0,0,0.10); transform: translateY(-1px); }
+    .card.open { border-color: #2d6e4e; box-shadow: 0 4px 20px rgba(45,110,78,0.12); }
+
+    .card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+    }
+    .card-name {
+      font-size: 16.5px;
+      font-weight: 700;
+      color: #1a202c;
+      line-height: 1.3;
+      margin-bottom: 2px;
+    }
+    .card-prov {
+      font-size: 12.5px;
+      color: #718096;
+      margin-bottom: 11px;
+    }
+
+    /* match badge */
+    .badge {
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 4px 11px;
+      border-radius: 16px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .badge.strong { background: #e4f5ec; color: #1a6b3a; }
+    .badge.good   { background: #fef9ec; color: #b7791f; }
+    .badge.partial{ background: #f2f2f2; color: #718096; }
+
+    /* tags */
+    .tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 11px; }
+    .tag {
+      font-size: 11.5px;
+      padding: 3px 9px;
+      border-radius: 10px;
+      font-weight: 500;
+    }
+    .tag.risk    { background: #fff5f5; color: #c53030; border: 1px solid #fed7d7; }
+    .tag.sector  { background: #ebf8ff; color: #2b6cb0; border: 1px solid #bee3f8; }
+    .tag.geo     { background: #f0f7f3; color: #276749; border: 1px solid #b7dfc8; }
+    .tag.itype   { background: #faf5ff; color: #6b46c1; border: 1px solid #e9d8fd; }
+
+    .card-desc {
+      font-size: 13.5px;
+      color: #4a5568;
+      line-height: 1.65;
+    }
+
+    /* expand toggle */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      color: #2d6e4e;
+      font-weight: 700;
+      margin-top: 12px;
+      user-select: none;
+    }
+    .arrow { display: inline-block; transition: transform 0.2s; font-size: 10px; }
+    .card.open .arrow { transform: rotate(180deg); }
+
+    /* expanded details */
+    .card-details {
+      display: none;
+      margin-top: 18px;
+      padding-top: 18px;
+      border-top: 1px solid #e4ede8;
+    }
+    .card.open .card-details { display: block; }
+
+    .dg {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px 20px;
+      margin-bottom: 18px;
+    }
+    .di label {
+      font-size: 10.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      color: #90a89a;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .di p { font-size: 13.5px; color: #2d3748; line-height: 1.5; }
+
+    .features-label {
+      font-size: 10.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      color: #90a89a;
+      display: block;
+      margin-bottom: 8px;
+    }
+    .features {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      margin-bottom: 18px;
+    }
+    .feature {
+      display: flex;
+      gap: 8px;
+      font-size: 13px;
+      color: #4a5568;
+      line-height: 1.5;
+    }
+    .feature-check { color: #2d6e4e; font-weight: 800; flex-shrink: 0; }
+
+    .visit-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #2d6e4e;
+      color: white;
+      text-decoration: none;
+      padding: 9px 20px;
+      border-radius: 9px;
+      font-size: 13px;
+      font-weight: 700;
+      transition: background 0.18s;
+    }
+    .visit-btn:hover { background: #1a4731; }
+
+    /* empty state */
+    .empty {
+      text-align: center;
+      padding: 54px 20px;
+      color: #718096;
+    }
+    .empty-icon { font-size: 44px; margin-bottom: 14px; }
+    .empty-title { font-size: 17px; font-weight: 700; color: #4a5568; margin-bottom: 8px; }
+    .empty-text { font-size: 14px; line-height: 1.65; max-width: 440px; margin: 0 auto; }
+
+    /* footnote */
+    .footnote {
+      margin-top: 32px;
+      font-size: 12px;
+      color: #a0aec0;
+      text-align: center;
+      line-height: 1.6;
+    }
+    .footnote a { color: #2d6e4e; text-decoration: none; }
+    .footnote a:hover { text-decoration: underline; }
+
+    @media (max-width: 620px) {
+      .search-row { flex-direction: column; }
+      .btn-search { width: 100%; height: 48px; }
+      .dg { grid-template-columns: 1fr; }
+      .welcome-stats { gap: 24px; }
+      .header-inner { flex-direction: column; align-items: flex-start; gap: 4px; }
+      .header-badge { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div>
+      <h1>🌿 Green Guarantee Finder</h1>
+      <div class="sub">Powered by the CPI Green Guarantee Directory</div>
+    </div>
+    <div class="header-badge">10 programs · 34+ providers<br>Updated 2024</div>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="search-card">
+    <div class="search-label">Describe what you need a guarantee for</div>
+    <div class="search-row">
+      <textarea id="q" placeholder="e.g. 'Solar project in Kenya needing political risk coverage' or 'Currency risk protection for infrastructure in Southeast Asia' …" onkeydown="onKey(event)"></textarea>
+      <button class="btn-search" onclick="doSearch()">Find →</button>
+    </div>
+    <div class="try-label">Try asking about</div>
+    <div class="chips">
+      <span class="chip" onclick="quick('Solar energy guarantees in Sub-Saharan Africa')">☀️ Solar in Sub-Saharan Africa</span>
+      <span class="chip" onclick="quick('Political risk coverage for infrastructure in Asia')">🏗️ Political risk in Asia</span>
+      <span class="chip" onclick="quick('Currency risk protection for emerging markets')">💱 Currency risk</span>
+      <span class="chip" onclick="quick('Climate finance guarantees for developing countries')">🌍 Climate finance</span>
+      <span class="chip" onclick="quick('Credit guarantee for renewable energy bond issuance')">⚡ Renewable energy bonds</span>
+      <span class="chip" onclick="quick('Infrastructure guarantees in Nigeria')">🇳🇬 Infrastructure in Nigeria</span>
+      <span class="chip" onclick="quick('Trade credit insurance in Africa')">🤝 Trade credit in Africa</span>
+      <span class="chip" onclick="quick('Concessional guarantees for climate adaptation')">🌱 Climate adaptation</span>
+    </div>
+  </div>
+
+  <div id="out">
+    <div class="welcome">
+      <div class="welcome-stats">
+        <div><div class="stat-num">10</div><div class="stat-lbl">Guarantee Programs</div></div>
+        <div><div class="stat-num">5</div><div class="stat-lbl">Risk Types Covered</div></div>
+        <div><div class="stat-num">80+</div><div class="stat-lbl">Countries Reached</div></div>
+        <div><div class="stat-num">34</div><div class="stat-lbl">Key Provider Entities</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footnote">
+    Data sourced from the <a href="https://greenguaranteedirectory.org" target="_blank">CPI Green Guarantee Directory</a> ·
+    For the full directory visit <a href="https://greenguaranteedirectory.org/products" target="_blank">greenguaranteedirectory.org/products</a>
+  </div>
+
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+// DATABASE
+// ─────────────────────────────────────────────
+const DB = [
+  {
+    id: 1,
+    name: "Political Risk Insurance & Credit Enhancement",
+    provider: "MIGA – Multilateral Investment Guarantee Agency",
+    providerShort: "MIGA · World Bank Group",
+    type: "Political Risk Insurance + Credit Enhancement",
+    riskTypes: ["Political Risk", "Credit Risk", "Currency Transfer Risk"],
+    sectors: ["Energy", "Renewable Energy", "Infrastructure", "Finance", "Manufacturing", "Agriculture", "Services"],
+    geographies: ["Sub-Saharan Africa", "South Asia", "Southeast Asia", "East Asia", "Latin America", "MENA", "Eastern Europe", "Global Developing Countries"],
+    geoDetail: "All World Bank developing member countries",
+    eligible: ["Foreign investors", "Cross-border lenders", "Project developers", "Equity investors"],
+    desc: "MIGA provides political risk insurance and credit enhancement to private sector investors and lenders for projects in developing member countries. Covers expropriation, war & civil disturbance, breach of contract, non-honoring of sovereign financial obligations, and currency transfer restrictions.",
+    dealSize: "Up to $1.37B per project",
+    tenor: "Up to 20 years",
+    features: [
+      "Covers expropriation, war, breach of contract, currency inconvertibility",
+      "Available for both equity and debt investments",
+      "Non-honoring of sovereign/sub-sovereign financial obligations",
+      "Greenfield and brownfield projects eligible"
+    ],
+    url: "https://www.miga.org",
+    tags: ["political", "credit", "currency", "miga", "world bank", "multilateral", "cross-border", "investment", "insurance", "developing", "political risk", "expropriation"]
+  },
+  {
+    id: 2,
+    name: "Political Risk Insurance & Loan Guarantees",
+    provider: "DFC – U.S. International Development Finance Corporation",
+    providerShort: "DFC · US Government",
+    type: "Political Risk Insurance + Loan Guarantees",
+    riskTypes: ["Political Risk", "Credit Risk"],
+    sectors: ["Clean Energy", "Renewable Energy", "Agriculture", "Healthcare", "Infrastructure", "Technology", "Housing"],
+    geographies: ["Sub-Saharan Africa", "South Asia", "Southeast Asia", "Latin America", "MENA", "Indo-Pacific", "Global Developing Countries"],
+    geoDetail: "Developing countries, with strategic focus on Africa, Indo-Pacific, and Latin America",
+    eligible: ["US investors", "US businesses", "Local partners of US entities", "Project developers with US nexus"],
+    desc: "DFC provides political risk insurance, loan guarantees, direct loans, and equity financing to support private investment in developing and emerging economies. Strong focus on climate, clean energy, and economic development aligned with US foreign policy priorities.",
+    dealSize: "$1M – $1B+",
+    tenor: "Up to 25 years",
+    features: [
+      "US investor or lender nexus typically required",
+      "Covers expropriation, political violence, currency inconvertibility",
+      "Strong focus on Sub-Saharan Africa and Indo-Pacific",
+      "Combines well with USAID development programs"
+    ],
+    url: "https://www.dfc.gov",
+    tags: ["political", "credit", "dfc", "us", "american", "united states", "loan guarantee", "clean energy", "climate", "developing", "emerging", "indo-pacific", "africa", "renewable energy"]
+  },
+  {
+    id: 3,
+    name: "Local Currency Credit Guarantees",
+    provider: "GuarantCo – Private Infrastructure Development Group (PIDG)",
+    providerShort: "GuarantCo · PIDG",
+    type: "Partial Credit Guarantee",
+    riskTypes: ["Credit Risk"],
+    sectors: ["Energy", "Renewable Energy", "Infrastructure", "Transport", "Telecoms", "Water", "Housing"],
+    geographies: ["Sub-Saharan Africa", "South Asia", "Southeast Asia"],
+    geoDetail: "Kenya, Tanzania, Ghana, Nigeria, Senegal, Rwanda, Uganda, Zambia, Mozambique, Côte d'Ivoire, India, Bangladesh, Pakistan, Vietnam, Cambodia, Myanmar",
+    eligible: ["Local bond issuers", "Infrastructure companies", "Energy developers", "Commercial banks", "Microfinance institutions"],
+    desc: "GuarantCo provides local currency guarantees to enable infrastructure and energy companies to raise debt financing from domestic capital markets in low-income countries across Africa and Asia. Helps issuers access local pension funds, insurance companies, and banks — eliminating foreign exchange risk for borrowers.",
+    dealSize: "$5M – $150M equivalent",
+    tenor: "Up to 15 years",
+    features: [
+      "Local currency focus — no foreign exchange risk to the issuer",
+      "Enables access to domestic pension funds and insurance capital",
+      "Partial credit guarantee structure (typically 50–100% of bond)",
+      "Particularly active in East Africa and South/Southeast Asia"
+    ],
+    url: "https://guarantco.com",
+    tags: ["credit", "local currency", "bond", "guarantco", "pidg", "africa", "asia", "infrastructure", "capital markets", "domestic", "kenya", "nigeria", "ghana", "bangladesh", "pakistan", "vietnam", "tanzania", "rwanda", "senegal", "mozambique", "pension fund"]
+  },
+  {
+    id: 4,
+    name: "First-Loss Credit Guarantees for Green Projects",
+    provider: "Green Guarantee Company (GGC)",
+    providerShort: "Green Guarantee Company",
+    type: "First-Loss Credit Guarantee",
+    riskTypes: ["Credit Risk"],
+    sectors: ["Renewable Energy", "Green Buildings", "Sustainable Agriculture", "Climate Adaptation", "Energy Efficiency"],
+    geographies: ["Sub-Saharan Africa"],
+    geoDetail: "Focus countries: Nigeria, Kenya, Ghana, South Africa, Senegal, Tanzania, Egypt",
+    eligible: ["Green project developers", "Local banks financing green projects", "SMEs in green sectors", "Blended finance vehicles"],
+    desc: "The Green Guarantee Company provides first-loss credit guarantees specifically designed to de-risk green and climate investments in Sub-Saharan Africa. By absorbing first-loss credit risk, GGC enables commercial lenders to deploy capital into climate projects that would otherwise be considered too risky.",
+    dealSize: "$5M – $100M",
+    tenor: "Up to 10 years",
+    features: [
+      "First-loss structure absorbs initial losses, de-risking commercial lenders",
+      "Exclusively focused on green and climate-aligned projects",
+      "Sub-Saharan Africa specialist — deep regional expertise",
+      "Supports both local currency and hard currency transactions"
+    ],
+    url: "https://www.greenguaranteeco.com",
+    tags: ["credit", "green", "climate", "first-loss", "africa", "sub-saharan", "renewable energy", "green buildings", "sustainable", "ggc", "first loss", "mitigation", "adaptation", "energy efficiency", "nigeria", "kenya", "ghana", "south africa"]
+  },
+  {
+    id: 5,
+    name: "Partial Credit Guarantees & Risk Sharing Facilities",
+    provider: "IFC – International Finance Corporation",
+    providerShort: "IFC · World Bank Group",
+    type: "Partial Credit Guarantee + Risk Sharing Facility",
+    riskTypes: ["Credit Risk"],
+    sectors: ["Finance", "Infrastructure", "Renewable Energy", "Agribusiness", "Manufacturing", "Healthcare", "Education"],
+    geographies: ["Sub-Saharan Africa", "South Asia", "East Asia", "Southeast Asia", "Latin America", "MENA", "Eastern Europe", "Global Developing Countries"],
+    geoDetail: "All IFC member developing countries globally",
+    eligible: ["Commercial banks", "Financial institutions", "Bond issuers", "Project finance borrowers", "Microfinance institutions"],
+    desc: "IFC offers partial credit guarantees and risk sharing facilities to help financial institutions and bond issuers in emerging markets access capital. IFC covers a portion of credit risk, enabling commercial banks to lend to underserved sectors and helping borrowers access bond markets at better terms.",
+    dealSize: "$1M – $500M+",
+    tenor: "Up to 20 years",
+    features: [
+      "Covers up to 50% of loan or bond principal",
+      "Available for individual transactions and loan portfolios",
+      "Risk sharing facilities allow banks to expand lending in target sectors",
+      "Strong track record in financial sector and agribusiness"
+    ],
+    url: "https://www.ifc.org/guarantees",
+    tags: ["credit", "ifc", "world bank", "partial credit", "financial institution", "bank", "bond", "developing", "global", "risk sharing", "portfolio guarantee", "agribusiness", "renewable energy"]
+  },
+  {
+    id: 6,
+    name: "Partial Risk Guarantee (PRG) for Infrastructure",
+    provider: "African Development Bank (AfDB)",
+    providerShort: "African Development Bank",
+    type: "Partial Risk Guarantee",
+    riskTypes: ["Political Risk", "Credit Risk"],
+    sectors: ["Energy", "Renewable Energy", "Transport", "Water", "Telecoms", "Agriculture"],
+    geographies: ["Sub-Saharan Africa", "North Africa"],
+    geoDetail: "All 54 AfDB regional member countries across Africa",
+    eligible: ["Private lenders to PPP infrastructure projects", "Foreign investors in African infrastructure", "Project finance sponsors"],
+    desc: "The AfDB's Partial Risk Guarantee (PRG) covers private sector lenders and investors against the risk that a government fails to meet its contractual obligations in public-private partnership (PPP) infrastructure transactions. It mobilizes private investment into Africa's critical infrastructure.",
+    dealSize: "Up to $75M per project",
+    tenor: "Up to 20 years",
+    features: [
+      "Covers government obligation risk in PPP and concession agreements",
+      "Available for both cross-border and domestic infrastructure projects",
+      "Can be combined with AfDB loans and technical assistance",
+      "Covers all 54 African member states"
+    ],
+    url: "https://www.afdb.org/en/topics-and-sectors/initiatives-partnerships/guarantee-program",
+    tags: ["political", "credit", "afdb", "africa", "african", "infrastructure", "ppp", "partial risk", "government", "renewable energy", "transport", "water", "concession", "public private partnership", "nigeria", "kenya", "ethiopia", "ghana", "senegal"]
+  },
+  {
+    id: 7,
+    name: "Trade Credit & Political Risk Insurance",
+    provider: "ATI – African Trade Insurance Agency",
+    providerShort: "ATI · Pan-African",
+    type: "Trade Credit Insurance + Political Risk Insurance",
+    riskTypes: ["Political Risk", "Credit Risk", "Trade Credit Risk"],
+    sectors: ["Trade & Investment", "Energy", "Agriculture", "Infrastructure", "Manufacturing"],
+    geographies: ["Sub-Saharan Africa"],
+    geoDetail: "Member states: Benin, Burundi, Cameroon, Congo, Côte d'Ivoire, DRC, Ethiopia, Kenya, Madagascar, Malawi, Rwanda, Senegal, Tanzania, Uganda, Zambia, Zimbabwe + additional members",
+    eligible: ["Exporters", "Commercial banks providing trade finance", "Foreign direct investors", "Project developers", "Surety bond seekers"],
+    desc: "ATI is a pan-African multilateral insurer providing trade credit insurance, political risk insurance, and surety bonds to facilitate intra-African and international trade and investment. Covers non-payment by buyers, political disruptions, and sovereign/sub-sovereign obligations across member states.",
+    dealSize: "Flexible — structured per transaction",
+    tenor: "Up to 15 years",
+    features: [
+      "Pan-African coverage across 20+ member states",
+      "Covers trade credit risk: buyer non-payment, insolvency",
+      "Political risk: expropriation, political violence, currency inconvertibility",
+      "Rated A3/Stable by Moody's — widely accepted by international banks"
+    ],
+    url: "https://www.atiafrica.com",
+    tags: ["political", "credit", "trade", "ati", "africa", "insurance", "export", "buyer risk", "kenya", "ethiopia", "tanzania", "rwanda", "drc", "trade credit", "non-payment", "surety", "pan-african"]
+  },
+  {
+    id: 8,
+    name: "Climate Finance Guarantees (Mitigation & Adaptation)",
+    provider: "Green Climate Fund (GCF)",
+    providerShort: "Green Climate Fund · UNFCCC",
+    type: "Concessional Guarantee",
+    riskTypes: ["Credit Risk", "Political Risk"],
+    sectors: ["Renewable Energy", "Energy Efficiency", "Forests & Land Use", "Water", "Transport", "Buildings", "Agriculture", "Climate Adaptation"],
+    geographies: ["Sub-Saharan Africa", "South Asia", "Southeast Asia", "Latin America", "MENA", "Pacific Islands", "Global Developing Countries"],
+    geoDetail: "All developing country Parties to the UNFCCC; Least Developed Countries prioritized",
+    eligible: ["GCF-accredited entities (national, regional, international)", "Development finance institutions", "Private sector entities via accredited partners"],
+    desc: "The Green Climate Fund provides concessional guarantees to de-risk climate investments in developing countries, channeled through GCF-accredited entities. Supports both climate mitigation (reducing emissions) and adaptation (building resilience), with a mandate to prioritize the most vulnerable countries.",
+    dealSize: "$1M – $250M+",
+    tenor: "Project-specific, typically 10–20 years",
+    features: [
+      "Must be channeled through a GCF-accredited entity",
+      "Covers both mitigation and adaptation activities",
+      "Concessional pricing below commercial market rates",
+      "Least Developed Countries and Small Island States prioritized"
+    ],
+    url: "https://www.greenclimate.fund/about/financial-instruments/guarantees",
+    tags: ["climate", "green", "gcf", "concessional", "mitigation", "adaptation", "developing", "renewable energy", "forests", "water", "ldc", "islands", "pacific", "resilience", "unfccc", "climate fund", "climate finance", "clean energy"]
+  },
+  {
+    id: 9,
+    name: "Trade Finance & Energy Transition Guarantees",
+    provider: "EBRD – European Bank for Reconstruction and Development",
+    providerShort: "EBRD",
+    type: "Trade Finance Guarantee + Project Guarantee",
+    riskTypes: ["Credit Risk", "Political Risk"],
+    sectors: ["Energy", "Renewable Energy", "Infrastructure", "Trade", "Manufacturing", "Finance", "Agriculture"],
+    geographies: ["Eastern Europe", "Central Asia", "MENA", "Southern Mediterranean"],
+    geoDetail: "36 countries: Poland, Turkey, Egypt, Kazakhstan, Ukraine, Uzbekistan, Morocco, Jordan, Tunisia, Georgia, Armenia, Mongolia, and others",
+    eligible: ["Banks in EBRD countries of operation", "International confirming banks (Trade Finance Programme)", "Infrastructure and energy project developers"],
+    desc: "EBRD's Trade Finance Programme provides guarantees enabling confirming banks in Western markets to cover payment obligations from issuing banks in EBRD transition economies. EBRD also provides project-level guarantees to support energy transition and infrastructure, with a Green Economy Transition target of 50%+ of annual business.",
+    dealSize: "$1M – $300M",
+    tenor: "Up to 15 years",
+    features: [
+      "Trade Finance Programme: 800+ partner banks in 100+ countries",
+      "Covers 36 transition economy countries of operations",
+      "Green Economy Transition target: 50%+ of annual investment volume",
+      "Strong pipeline in Central Asia energy transition (Kazakhstan, Uzbekistan)"
+    ],
+    url: "https://www.ebrd.com/what-we-do/trade-finance.html",
+    tags: ["credit", "political", "ebrd", "eastern europe", "central asia", "trade", "mena", "turkey", "egypt", "ukraine", "energy transition", "transition economies", "trade finance", "poland", "kazakhstan", "uzbekistan", "morocco", "jordan", "georgia", "renewable energy"]
+  },
+  {
+    id: 10,
+    name: "Infrastructure Credit Guarantee Scheme",
+    provider: "InfraCredit",
+    providerShort: "InfraCredit · Nigeria",
+    type: "Credit Guarantee",
+    riskTypes: ["Credit Risk"],
+    sectors: ["Energy", "Renewable Energy", "Transport", "Water", "Telecoms", "Healthcare", "Agriculture"],
+    geographies: ["Nigeria"],
+    geoDetail: "Nigeria only — domestic infrastructure projects (NGN-denominated)",
+    eligible: ["Nigerian infrastructure companies", "Infrastructure SPVs issuing bonds", "Project finance issuers in Nigeria"],
+    desc: "InfraCredit is a Nigeria-domiciled infrastructure credit guarantee company that enhances the credit quality of debt instruments issued by Nigerian infrastructure projects, enabling them to access the domestic capital market — particularly pension funds and insurance companies under Nigerian pension regulations.",
+    dealSize: "₦500M – ₦50B+ (NGN-denominated)",
+    tenor: "Up to 15 years",
+    features: [
+      "Local currency (NGN) only — no foreign exchange risk",
+      "Nigeria-specific: enables access to ₦19T+ pension fund pool",
+      "Backed by AfDB, GuarantCo, IFC, and the Nigerian government",
+      "Supports Nigeria's domestic infrastructure capital market development"
+    ],
+    url: "https://www.infracredit.com.ng",
+    tags: ["credit", "infracredit", "nigeria", "local currency", "naira", "ngn", "pension fund", "domestic", "infrastructure", "bond", "west africa", "lagos", "abuja", "nigerian"]
+  }
+];
+
+// ─────────────────────────────────────────────
+// NLP — KEYWORD → STRUCTURED TAG MAP
+// ─────────────────────────────────────────────
+const KW = {
+  // Sectors
+  'solar':             ['Renewable Energy','Energy','Clean Energy'],
+  'wind':              ['Renewable Energy','Energy','Clean Energy'],
+  'hydro':             ['Renewable Energy','Energy','Clean Energy'],
+  'geothermal':        ['Renewable Energy','Energy','Clean Energy'],
+  'renewable':         ['Renewable Energy','Energy','Clean Energy'],
+  'clean energy':      ['Renewable Energy','Energy','Clean Energy'],
+  'green energy':      ['Renewable Energy','Energy','Clean Energy'],
+  'power':             ['Energy','Renewable Energy'],
+  'electricity':       ['Energy','Renewable Energy'],
+  'energy':            ['Energy','Renewable Energy','Clean Energy'],
+  'infrastructure':    ['Infrastructure','Transport'],
+  'transport':         ['Infrastructure','Transport'],
+  'road':              ['Infrastructure','Transport'],
+  'port':              ['Infrastructure','Transport'],
+  'railway':           ['Infrastructure','Transport'],
+  'bridge':            ['Infrastructure','Transport'],
+  'water':             ['Water'],
+  'sanitation':        ['Water'],
+  'agriculture':       ['Agriculture','Agribusiness'],
+  'agri':              ['Agriculture','Agribusiness'],
+  'farming':           ['Agriculture'],
+  'food':              ['Agriculture'],
+  'forest':            ['Forests & Land Use'],
+  'land use':          ['Forests & Land Use'],
+  'redd':              ['Forests & Land Use'],
+  'health':            ['Healthcare'],
+  'hospital':          ['Healthcare'],
+  'medical':           ['Healthcare'],
+  'sme':               ['Finance'],
+  'small business':    ['Finance'],
+  'trade':             ['Trade & Investment','Finance'],
+  'export':            ['Trade & Investment'],
+  'telecom':           ['Telecoms'],
+  'housing':           ['Housing'],
+  'building':          ['Green Buildings'],
+  'efficiency':        ['Energy Efficiency'],
+  'adaptation':        ['Climate Adaptation'],
+  'resilience':        ['Climate Adaptation'],
+  'mitigation':        ['Renewable Energy','Energy Efficiency'],
+  'climate':           ['Renewable Energy','Climate Adaptation','Forests & Land Use'],
+  'green':             ['Renewable Energy','Green Buildings'],
+  'manufacturing':     ['Manufacturing'],
+  'finance':           ['Finance'],
+  'bank':              ['Finance'],
+  'bond':              ['Finance'],
+  // Risk types
+  'political':              ['Political Risk'],
+  'political risk':         ['Political Risk'],
+  'expropriation':          ['Political Risk'],
+  'nationalization':        ['Political Risk'],
+  'government':             ['Political Risk'],
+  'sovereign':              ['Political Risk'],
+  'war':                    ['Political Risk'],
+  'civil disturbance':      ['Political Risk'],
+  'violence':               ['Political Risk'],
+  'confiscation':           ['Political Risk'],
+  'currency':               ['Currency Transfer Risk','Credit Risk'],
+  'forex':                  ['Currency Transfer Risk'],
+  'foreign exchange':       ['Currency Transfer Risk'],
+  'exchange rate':          ['Currency Transfer Risk'],
+  'devaluation':            ['Currency Transfer Risk'],
+  'local currency':         ['Credit Risk'],
+  'credit':                 ['Credit Risk'],
+  'default':                ['Credit Risk'],
+  'repayment':              ['Credit Risk'],
+  'payment':                ['Credit Risk','Trade Credit Risk'],
+  'non-payment':            ['Credit Risk','Trade Credit Risk'],
+  'non payment':            ['Credit Risk','Trade Credit Risk'],
+  'first-loss':             ['Credit Risk'],
+  'first loss':             ['Credit Risk'],
+  // Geographies
+  'africa':            ['Sub-Saharan Africa','North Africa'],
+  'african':           ['Sub-Saharan Africa','North Africa'],
+  'sub-saharan':       ['Sub-Saharan Africa'],
+  'subsaharan':        ['Sub-Saharan Africa'],
+  'east africa':       ['Sub-Saharan Africa'],
+  'west africa':       ['Sub-Saharan Africa'],
+  'southern africa':   ['Sub-Saharan Africa'],
+  'kenya':             ['Sub-Saharan Africa'],
+  'nigeria':           ['Sub-Saharan Africa','Nigeria'],
+  'ghana':             ['Sub-Saharan Africa'],
+  'ethiopia':          ['Sub-Saharan Africa'],
+  'tanzania':          ['Sub-Saharan Africa'],
+  'senegal':           ['Sub-Saharan Africa'],
+  'south africa':      ['Sub-Saharan Africa'],
+  'mozambique':        ['Sub-Saharan Africa'],
+  'rwanda':            ['Sub-Saharan Africa'],
+  'uganda':            ['Sub-Saharan Africa'],
+  'zambia':            ['Sub-Saharan Africa'],
+  'zimbabwe':          ['Sub-Saharan Africa'],
+  'drc':               ['Sub-Saharan Africa'],
+  'congo':             ['Sub-Saharan Africa'],
+  'cameroon':          ['Sub-Saharan Africa'],
+  'benin':             ['Sub-Saharan Africa'],
+  'ivory coast':       ['Sub-Saharan Africa'],
+  'asia':              ['South Asia','Southeast Asia','East Asia'],
+  'south asia':        ['South Asia'],
+  'southeast asia':    ['Southeast Asia'],
+  'india':             ['South Asia'],
+  'pakistan':          ['South Asia'],
+  'bangladesh':        ['South Asia'],
+  'vietnam':           ['Southeast Asia'],
+  'indonesia':         ['Southeast Asia'],
+  'philippines':       ['Southeast Asia'],
+  'cambodia':          ['Southeast Asia'],
+  'myanmar':           ['Southeast Asia'],
+  'latin america':     ['Latin America'],
+  'south america':     ['Latin America'],
+  'brazil':            ['Latin America'],
+  'colombia':          ['Latin America'],
+  'peru':              ['Latin America'],
+  'mexico':            ['Latin America'],
+  'mena':              ['MENA'],
+  'middle east':       ['MENA'],
+  'north africa':      ['MENA','North Africa'],
+  'egypt':             ['MENA'],
+  'morocco':           ['MENA'],
+  'jordan':            ['MENA'],
+  'tunisia':           ['MENA'],
+  'eastern europe':    ['Eastern Europe'],
+  'central asia':      ['Central Asia'],
+  'ukraine':           ['Eastern Europe'],
+  'poland':            ['Eastern Europe'],
+  'turkey':            ['MENA','Eastern Europe'],
+  'kazakhstan':        ['Central Asia'],
+  'uzbekistan':        ['Central Asia'],
+  'georgia':           ['Eastern Europe'],
+  'developing':        ['Global Developing Countries'],
+  'emerging market':   ['Global Developing Countries'],
+  'emerging markets':  ['Global Developing Countries'],
+  'emde':              ['Global Developing Countries'],
+  'ldc':               ['Global Developing Countries'],
+  'low income':        ['Global Developing Countries'],
+  'developing country':['Global Developing Countries'],
+  'developing countries':['Global Developing Countries'],
+  'pacific':           ['Pacific Islands'],
+  'island':            ['Pacific Islands'],
+  'concessional':      ['Credit Risk'],
+  'ppp':               ['Political Risk','Infrastructure'],
+  'pension':           ['Credit Risk'],
+};
+
+// ─────────────────────────────────────────────
+// SEARCH ENGINE
+// ─────────────────────────────────────────────
+function parseQuery(raw) {
+  const q = raw.toLowerCase();
+  const matched = new Set();
+  // Long phrases first
+  const phrases = Object.keys(KW).sort((a,b) => b.length - a.length);
+  for (const p of phrases) {
+    if (q.includes(p)) {
+      KW[p].forEach(t => matched.add(t));
+    }
+  }
+  return matched;
+}
+
+function score(prog, tags, raw) {
+  const q = raw.toLowerCase();
+  let s = 0;
+  // Tag keyword direct hit (highest weight)
+  for (const t of prog.tags) {
+    if (q.includes(t)) s += 6;
+  }
+  // Risk type match
+  for (const r of prog.riskTypes) {
+    if (tags.has(r)) s += 10;
+    if (q.includes(r.toLowerCase().split(' ')[0])) s += 4;
+  }
+  // Sector match
+  for (const sec of prog.sectors) {
+    if (tags.has(sec)) s += 8;
+  }
+  // Geography match
+  for (const g of prog.geographies) {
+    if (tags.has(g)) s += 8;
+  }
+  // GeoDetail word match (catches specific country names)
+  if (prog.geoDetail) {
+    const gd = prog.geoDetail.toLowerCase();
+    const words = q.split(/\W+/).filter(w => w.length > 3);
+    for (const w of words) {
+      if (gd.includes(w)) s += 7;
+    }
+  }
+  return s;
+}
+
+// ─────────────────────────────────────────────
+// ACTIONS
+// ─────────────────────────────────────────────
+function doSearch() {
+  const q = document.getElementById('q').value.trim();
+  if (!q) return;
+  const tags = parseQuery(q);
+  const ranked = DB.map(p => ({ p, s: score(p, tags, q) })).sort((a,b) => b.s - a.s);
+  const hits = ranked.filter(r => r.s > 0);
+  render(hits.length ? hits : null, q);
+}
+
+function quick(txt) {
+  document.getElementById('q').value = txt;
+  doSearch();
+}
+
+function onKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doSearch(); }
+}
+
+function toggle(id) {
+  const c = document.getElementById('c' + id);
+  c.classList.toggle('open');
+}
+
+// ─────────────────────────────────────────────
+// RENDER
+// ─────────────────────────────────────────────
+function badgeHTML(s, max) {
+  const r = s / max;
+  if (r >= 0.75) return '<span class="badge strong">Strong match</span>';
+  if (r >= 0.45) return '<span class="badge good">Good match</span>';
+  return '<span class="badge partial">Partial match</span>';
+}
+
+function render(hits, q) {
+  const out = document.getElementById('out');
+  if (!hits) {
+    out.innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">🔍</div>
+        <div class="empty-title">No close matches found</div>
+        <div class="empty-text">Try including a sector (energy, agriculture, water), a geography (Africa, Kenya, Southeast Asia), or a risk type (political risk, credit risk, currency risk, first loss).</div>
+      </div>`;
+    return;
+  }
+  const max = hits[0].s;
+  let html = `
+    <div class="results-bar">
+      <div class="rq">Results for: <em>${q}</em></div>
+      <div class="rc">${hits.length} program${hits.length !== 1 ? 's' : ''}</div>
+    </div>`;
+  for (const { p, s } of hits) {
+    const geoTag = p.geographies.length > 1
+      ? `${p.geographies[0]} +${p.geographies.length - 1}`
+      : p.geographies[0];
+    html += `
+    <div class="card" id="c${p.id}" onclick="toggle(${p.id})">
+      <div class="card-top">
+        <div>
+          <div class="card-name">${p.name}</div>
+          <div class="card-prov">${p.providerShort}</div>
+        </div>
+        ${badgeHTML(s, max)}
+      </div>
+      <div class="tags">
+        ${p.riskTypes.map(r => `<span class="tag risk">${r}</span>`).join('')}
+        ${p.sectors.slice(0,3).map(r => `<span class="tag sector">${r}</span>`).join('')}
+        <span class="tag geo">${geoTag}</span>
+        <span class="tag itype">${p.type}</span>
+      </div>
+      <div class="card-desc">${p.desc}</div>
+      <div class="toggle-row">Show details <span class="arrow">▼</span></div>
+      <div class="card-details">
+        <div class="dg">
+          <div class="di"><label>Deal Size</label><p>${p.dealSize}</p></div>
+          <div class="di"><label>Max Tenor</label><p>${p.tenor}</p></div>
+          <div class="di"><label>Eligible Borrowers</label><p>${p.eligible.join(', ')}</p></div>
+          <div class="di"><label>Geographic Coverage</label><p>${p.geoDetail}</p></div>
+        </div>
+        <span class="features-label">Key Features</span>
+        <div class="features">
+          ${p.features.map(f => `<div class="feature"><span class="feature-check">✓</span>${f}</div>`).join('')}
+        </div>
+        <a href="${p.url}" target="_blank" class="visit-btn" onclick="event.stopPropagation()">Visit Program ↗</a>
+      </div>
+    </div>`;
+  }
+  out.innerHTML = html;
+}
+</script>
+
+</body>
+</html>
